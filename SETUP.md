@@ -44,7 +44,32 @@ eine aktuelle Version daneben, das Systempaket bleibt unberührt.
 | `cssls` | CSS, SCSS, LESS |
 | `html`, `jsonls` | HTML, JSON |
 | `emmet_language_server` | Emmet, auch in Twig und Blade |
+| `symfony_lsp` | Symfony-Framework (nur in Symfony-Apps) |
 | `lua_ls` | die Konfiguration selbst |
+
+**Symfony Language Tools**
+
+Der offizielle Symfony-LSP läuft **neben** intelephense: der eine versteht PHP als
+Sprache, der andere Symfony als Framework — Route-Namen, Service-IDs, Template-Pfade,
+Übersetzungsschlüssel, Doctrine.
+
+Er startet nur, wo `symfony.lock` oder `bin/console` liegt, also nicht in Laravel-,
+Legacy- oder Bundle-Projekten.
+
+Für die volle Genauigkeit bootet er den Symfony-Kernel, führt also Projektcode aus.
+Deshalb fragt er beim ersten Mal nach. Für Projekte, denen du dauerhaft vertraust,
+eine `.nvim.lua` im Projektwurzelverzeichnis anlegen:
+
+```lua
+vim.lsp.config('symfony_lsp', {
+  init_options = { workspaceTrust = true },
+})
+```
+
+Wichtig: Er braucht ein PHP **mit** Extensions (dom, xml, mbstring, intl). Auf diesem
+Rechner ist `php` die Version 8.4 ohne Extensions, deshalb ist `php8.3` fest
+eingestellt. Fehlt das, meldet er nur „could not initialize runtime metadata" und
+liefert stillschweigend keine Vorschläge mehr.
 
 **Formatierung** über `<leader>f` (Leertaste, dann `f`)
 
