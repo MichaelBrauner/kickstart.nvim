@@ -73,14 +73,25 @@ Er startet nur, wo `symfony.lock` oder `bin/console` liegt, also nicht in Larave
 Legacy- oder Bundle-Projekten.
 
 Für die volle Genauigkeit bootet er den Symfony-Kernel, führt also Projektcode aus.
-Deshalb fragt er beim ersten Mal nach. Für Projekte, denen du dauerhaft vertraust,
-eine `.nvim.lua` im Projektwurzelverzeichnis anlegen:
+`workspaceTrust` steht deshalb fest auf `true` — ohne die Erlaubnis liefert er
+schlicht nichts. Für fremden Code (geklonte Reproducer, fremde Repositories) lässt
+sich das projektweise zurücknehmen, per `.nvim.lua` im Projektwurzelverzeichnis:
 
 ```lua
 vim.lsp.config('symfony_lsp', {
-  init_options = { workspaceTrust = true },
+  init_options = { workspaceTrust = false },
 })
 ```
+
+**Zur Meldung „could not initialize runtime metadata":** Die ist irreführend und wird
+ausgefiltert. Gemessen an einem Symfony-7.4-Projekt (Version 0.16.0): mit
+`workspaceTrust = false` kommen 0 Route-Vorschläge und keine Meldung, mit `true`
+kommen 50 Vorschläge **und** die Meldung. Der erste Boot-Versuch scheitert also,
+der zweite gelingt, und der Server nimmt seine Meldung nicht zurück.
+
+**Docker wird nicht benutzt**, obwohl es naheliegt und offiziell dokumentiert ist —
+mit Version 0.16.0 war es trotz korrekter Einrichtung nicht zum Laufen zu bringen.
+Was geprüft wurde, steht in `lua/custom/plugins/symfony.lua`.
 
 Wichtig: Er braucht ein PHP **mit** Extensions (dom, xml, mbstring, intl). Auf diesem
 Rechner ist `php` die Version 8.4 ohne Extensions, deshalb ist `php8.3` fest

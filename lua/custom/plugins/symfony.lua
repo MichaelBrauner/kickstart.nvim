@@ -176,14 +176,24 @@ vim.lsp.config('symfony_lsp', {
     --
     --   true          -> Kernel wird gebootet, volle Genauigkeit
     --   false         -> nur statische Analyse
-    --   nicht gesetzt -> der Server fragt beim ersten Mal nach
+    --   nicht gesetzt -> der Server fragt bei jedem Start nach
     --
-    -- Bewusst nicht gesetzt: In ~/Dev liegen neben eigenen Projekten
-    -- auch fremde Bundles und Reproducer. Bei denen soll nicht
-    -- ungefragt Projektcode laufen. Die Antwort gilt pro
-    -- Server-Prozess, also einmal je Neovim-Sitzung.
+    -- Steht hier auf true. Ohne die Erlaubnis liefert der Server keine
+    -- Route- und Service-Vervollstaendigung -- genau das, wofuer er da
+    -- ist. Und da er nur in echten Symfony-Anwendungen startet
+    -- (siehe root_dir weiter unten), betrifft das ausschliesslich
+    -- eigene Projekte.
     --
-    -- Fuer Projekte, denen du dauerhaft vertraust: siehe unten.
+    -- Fuer fremden Code -- geklonte Reproducer, fremde Repositories --
+    -- laesst sich das projektweise zuruecknehmen, mit einer .nvim.lua
+    -- im Projektwurzelverzeichnis:
+    --
+    --   vim.lsp.config('symfony_lsp', {
+    --     init_options = { workspaceTrust = false },
+    --   })
+    --
+    workspaceTrust = true,
+
     trace = 'off',
   },
 
@@ -226,3 +236,44 @@ vim.lsp.enable 'symfony_lsp'
 -- .nvim.lua gehoert in .gitignore, wenn sie nicht ins Projekt-Repo soll.
 -- ------------------------------------------------------------
 vim.o.exrc = true
+
+-- ------------------------------------------------------------
+-- Eine irrefuehrende Meldung unterdruecken
+--
+-- Der Server meldet beim Start:
+--
+--   Symfony Language Tools could not initialize runtime metadata
+--   for "...". Static-only features remain active.
+--
+-- Das stimmt so nicht. Nachgemessen am 26.08.2026 mit Version 0.16.0
+-- an einem Symfony-7.4-Projekt:
+--
+--   workspaceTrust = false  ->   0 Route-Vorschlaege, keine Meldung
+--   workspaceTrust = true   ->  50 Route-Vorschlaege, Meldung erscheint
+--
+-- Die Vorschlaege stammen also sehr wohl aus dem Laufzeit-Index -- der
+-- erste Versuch scheitert offenbar, der zweite gelingt, und der Server
+-- nimmt seine Meldung nicht zurueck.
+--
+-- Gefiltert wird ausschliesslich dieser eine Wortlaut; alle uebrigen
+-- Meldungen des Servers kommen unveraendert durch. Nach dem Ende der
+-- Beta pruefen, ob der Filter noch noetig ist.
+-- ------------------------------------------------------------
+do
+  local original = vim.lsp.handlers['window/showMessage']
+
+  vim.lsp.handlers['window/showMessage'] = function(err, result, ctx, config)
+    local client = vim.lsp.get_client_by_id(ctx.client_id)
+
+    if client and client.name == 'symfony_lsp' and type(result) == 'table' then
+      local text = result.message or ''
+      if text:find('could not initialize runtime metadata', 1, true) then
+        return
+      end
+    end
+
+    if original then
+      return original(err, result, ctx, config)
+    end
+  end
+end
