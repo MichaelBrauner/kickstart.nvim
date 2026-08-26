@@ -142,9 +142,12 @@ Leader-Taste ist die **Leertaste**.
 In der Statusansicht: `s` staged, `u` unstaged, `c c` committet, `p p` pusht,
 `d` öffnet den Diff, `?` zeigt alle Tasten. `q` schließt Git-Fenster.
 
-`Alt+9` ist in GNOME Terminal für den Tab-Wechsel reserviert und erreicht Neovim
-nicht. Das Kürzel ist zwar belegt, funktioniert aber erst, wenn der Terminal-Shortcut
-freigegeben wird:
+**Zum Verlauf:** `<leader>gl` ist der Weg, der überall funktioniert. `Alt+9` ist
+zusätzlich belegt, wird in GNOME Terminal aber vom Tab-Wechsel abgefangen und kommt
+gar nicht bei Neovim an — in kitty, alacritty oder wezterm dagegen schon. Das Mapping
+bleibt deshalb für andere Maschinen bestehen.
+
+Wer den Terminal-Shortcut doch freigeben will:
 
 ```bash
 gsettings set org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/ \

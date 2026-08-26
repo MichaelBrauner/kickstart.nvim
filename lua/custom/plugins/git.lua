@@ -49,9 +49,12 @@ require('neogit').setup {
 -- ------------------------------------------------------------
 -- Tastenkuerzel
 --
--- <C-k> und <M-9> bilden die PhpStorm-Gewohnheit ab. Alt-Kombinationen
--- kommen allerdings nicht in jedem Terminal sauber an, deshalb gibt es
--- fuer beides zusaetzlich einen Leader-Weg, der ueberall funktioniert.
+-- <C-k> und <M-9> bilden die PhpStorm-Gewohnheit ab.
+--
+-- <C-k> kommt ueberall an. <M-9> faengt GNOME Terminal dagegen selbst ab
+-- (dort wechselt es den Tab), waehrend es in kitty, alacritty und wezterm
+-- funktioniert -- das Mapping bleibt deshalb fuer andere Maschinen stehen.
+-- Der Weg, der ueberall funktioniert, ist <leader>gl.
 -- ------------------------------------------------------------
 local map = function(lhs, rhs, desc)
   vim.keymap.set('n', lhs, rhs, { desc = desc, silent = true })
