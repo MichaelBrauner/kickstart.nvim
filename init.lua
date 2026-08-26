@@ -703,6 +703,54 @@ do
     -- But for many setups, the LSP (`ts_ls`) will work just fine
     -- ts_ls = {},
 
+    -- ==========================================================
+    -- PHP: Symfony, Laravel und Legacy-Projekte
+    -- ==========================================================
+    intelephense = {
+      settings = {
+        intelephense = {
+          -- Stubs fuer PHP-Extensions. Ohne passenden Stub kennt der Server
+          -- z. B. Redis::get oder PDO::query nicht und meldet Fehlalarme.
+          stubs = {
+            'apache', 'bcmath', 'bz2', 'calendar', 'com_dotnet', 'Core', 'ctype',
+            'curl', 'date', 'dba', 'dom', 'enchant', 'exif', 'FFI', 'fileinfo',
+            'filter', 'fpm', 'ftp', 'gd', 'gettext', 'gmp', 'hash', 'iconv', 'imap',
+            'intl', 'json', 'ldap', 'libxml', 'mbstring', 'meta', 'mysqli',
+            'oci8', 'odbc', 'openssl', 'pcntl', 'pcre', 'PDO', 'pdo_ibm', 'pdo_mysql',
+            'pdo_pgsql', 'pdo_sqlite', 'pgsql', 'Phar', 'posix', 'pspell', 'readline',
+            'Reflection', 'session', 'shmop', 'SimpleXML', 'snmp', 'soap', 'sockets',
+            'sodium', 'SPL', 'sqlite3', 'standard', 'superglobals', 'sysvmsg',
+            'sysvsem', 'sysvshm', 'tidy', 'tokenizer', 'xml', 'xmlreader', 'xmlrpc',
+            'xmlwriter', 'xsl', 'Zend OPcache', 'zip', 'zlib',
+            -- Fuer Symfony/Laravel haeufig gebraucht:
+            'redis', 'memcached', 'imagick', 'amqp', 'mongodb',
+          },
+          files = {
+            -- Standard sind 1 MB. Generierte Container-Dateien in Symfony
+            -- und grosse Legacy-Klassen sprengen das regelmaessig.
+            maxSize = 5000000,
+          },
+          environment = {
+            includePaths = { 'vendor' },
+          },
+        },
+      },
+    },
+
+    -- ==========================================================
+    -- Frontend
+    -- ==========================================================
+    ts_ls = {},   -- JavaScript / TypeScript
+    cssls = {},   -- CSS / SCSS / LESS
+    html = {},    -- HTML
+    jsonls = {},  -- JSON (mit Schema-Validierung)
+
+    -- Emmet: aus `ul>li*3` wird per <C-y>, eine fertige Liste.
+    -- Laeuft auch in Twig- und Blade-Templates.
+    emmet_language_server = {
+      filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact', 'twig', 'blade', 'php' },
+    },
+
     stylua = {}, -- Used to format Lua code
 
     -- Special Lua Config, as recommended by neovim help docs
@@ -763,6 +811,8 @@ do
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     -- You can add other tools here that you want Mason to install
+    'php-cs-fixer', -- PHP-Formatierer (Fallback, wenn kein Pint im Projekt liegt)
+    'prettier', -- Formatierer fuer JS/TS/CSS/HTML/JSON/YAML
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -799,12 +849,23 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
-      -- rust = { 'rustfmt' },
-      -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
-      --
-      -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      -- PHP: Pint (Laravel) und php-cs-fixer (Symfony/sonst) bringen Projekte
+      -- ueblicherweise in vendor/bin mit. conform findet die lokale Version
+      -- automatisch und faellt sonst auf die Mason-Installation zurueck.
+      -- `stop_after_first` heisst: der erste verfuegbare gewinnt.
+      php = { 'pint', 'php_cs_fixer', stop_after_first = true },
+      -- Frontend
+      javascript = { 'prettier', stop_after_first = true },
+      typescript = { 'prettier', stop_after_first = true },
+      javascriptreact = { 'prettier', stop_after_first = true },
+      typescriptreact = { 'prettier', stop_after_first = true },
+      css = { 'prettier', stop_after_first = true },
+      scss = { 'prettier', stop_after_first = true },
+      html = { 'prettier', stop_after_first = true },
+      json = { 'prettier', stop_after_first = true },
+      jsonc = { 'prettier', stop_after_first = true },
+      yaml = { 'prettier', stop_after_first = true },
+      markdown = { 'prettier', stop_after_first = true },
     },
   }
 
@@ -907,7 +968,15 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+  local parsers = {
+    'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc',
+    -- PHP-Umfeld
+    'php', 'phpdoc', 'twig',
+    -- Frontend
+    'javascript', 'typescript', 'tsx', 'css', 'scss',
+    -- Konfigurationsdateien, die in PHP-Projekten staendig vorkommen
+    'json', 'yaml', 'toml', 'sql', 'xml', 'dockerfile', 'gitignore', 'gitcommit',
+  }
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
@@ -969,17 +1038,17 @@ do
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
-  -- require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  -- require 'kickstart.plugins.debug'      -- xdebug/DAP: spaeter, wenn der Rest sitzt
+  require 'kickstart.plugins.indent_line' -- Einrueckungslinien
+  require 'kickstart.plugins.lint' -- Linter-Anbindung
+  require 'kickstart.plugins.autopairs' -- Klammern/Anfuehrungszeichen automatisch schliessen
+  require 'kickstart.plugins.neo-tree' -- Dateibaum (\ oeffnet ihn)
+  require 'kickstart.plugins.gitsigns' -- Git-Markierungen am Rand
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- require 'custom.plugins'
+  require 'custom.plugins' -- eigene Ergaenzungen aus lua/custom/plugins/*.lua
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
