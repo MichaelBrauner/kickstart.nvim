@@ -91,8 +91,13 @@ install_tree_sitter() {
 #
 # Ohne eine Nerd Font zeigen Dateibaum und Statuszeile ihre Symbole als
 # Ersatzkaestchen mit Hex-Codes. Das komplette Release enthaelt ueber
-# hundert Varianten -- gebraucht werden vier Schnitte in der
-# Standardbreite.
+# hundert Varianten -- gebraucht werden vier Schnitte.
+#
+# Wichtig ist dabei die Mono-Variante: In der gewoehnlichen "Nerd Font"
+# belegen die Symbole zwei Zellen. GNOME Terminal leitet daraus die
+# Zellenbreite fuer saemtliche Zeichen ab, wodurch der ganze Text
+# auseinandergezogen wirkt. In "Nerd Font Mono" ist jedes Symbol
+# genau eine Zelle breit.
 #
 # Die Schriftart des Terminals muss anschliessend von Hand umgestellt
 # werden; welches Terminal im Einsatz ist, weiss dieses Skript nicht.
@@ -100,7 +105,7 @@ install_tree_sitter() {
 install_nerd_font() {
   local dir="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
 
-  if [ -f "$dir/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+  if [ -f "$dir/JetBrainsMonoNerdFontMono-Regular.ttf" ]; then
     info "JetBrainsMono Nerd Font ist bereits installiert"
     return 0
   fi
@@ -121,12 +126,12 @@ install_nerd_font() {
 
   local schnitt src
   for schnitt in Regular Bold Italic BoldItalic; do
-    src="$(find "$TMP/jbm" -name "JetBrainsMonoNerdFont-$schnitt.ttf" | head -1)"
+    src="$(find "$TMP/jbm" -name "JetBrainsMonoNerdFontMono-$schnitt.ttf" | head -1)"
     [ -n "$src" ] && cp "$src" "$dir/"
   done
 
   command -v fc-cache >/dev/null && fc-cache -f "$HOME/.local/share/fonts" >/dev/null 2>&1
-  warn "Terminal-Schriftart noch auf 'JetBrainsMono Nerd Font' umstellen."
+  warn "Terminal-Schriftart noch auf 'JetBrainsMono Nerd Font Mono' umstellen."
 }
 
 install_neovim
@@ -164,7 +169,7 @@ for tool in nvim rg fd tree-sitter; do
   fi
 done
 
-if [ -f "$HOME/.local/share/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+if [ -f "$HOME/.local/share/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFontMono-Regular.ttf" ]; then
   printf '  %-14s installiert (Terminal-Schriftart ggf. noch umstellen)\n' "Nerd Font"
 else
   printf '  %-14s FEHLT\n' "Nerd Font"

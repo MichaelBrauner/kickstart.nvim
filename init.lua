@@ -88,6 +88,39 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- SECTION 1: OPTIONS
 -- Core Neovim settings, leaders, options
 -- ============================================================
+-- ============================================================
+-- Mindestversion pruefen
+--
+-- Diese Konfiguration braucht vim.pack, den ab Neovim 0.12
+-- eingebauten Plugin-Manager. Aeltere Versionen scheitern sonst mit
+-- "Invalid 'event': 'PackChanged'" -- einer Meldung, aus der die
+-- eigentliche Ursache nicht hervorgeht.
+--
+-- Typischer Fall: Die Distribution liefert ein aelteres Neovim, und
+-- die Shell benutzt weiterhin den gemerkten Pfad dorthin. `hash -r`
+-- raeumt diesen Zwischenspeicher auf.
+-- ============================================================
+if vim.fn.has 'nvim-0.12' == 0 then
+  local v = vim.version()
+  local msg = {
+    '',
+    'Diese Konfiguration benoetigt Neovim 0.12 oder neuer.',
+    ('Gestartet wurde aber Version %d.%d.%d aus:'):format(v.major, v.minor, v.patch),
+    '  ' .. vim.v.progpath,
+    '',
+    'Liegt ein neueres Neovim in ~/.local/bin, benutzt die Shell',
+    'moeglicherweise noch den gemerkten alten Pfad. Dann hilft:',
+    '',
+    '  hash -r',
+    '',
+    'Ist gar keines installiert, richtet ~/.config/nvim/install.sh',
+    'alles Noetige ein.',
+    '',
+  }
+  vim.api.nvim_echo({ { table.concat(msg, '\n'), 'ErrorMsg' } }, true, {})
+  return
+end
+
 do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
