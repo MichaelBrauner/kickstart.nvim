@@ -86,7 +86,51 @@ install_tree_sitter() {
   install -m755 "$TMP/ts" "$BIN/tree-sitter"
 }
 
+# ---------------------------------------------------------------
+# JetBrainsMono Nerd Font
+#
+# Ohne eine Nerd Font zeigen Dateibaum und Statuszeile ihre Symbole als
+# Ersatzkaestchen mit Hex-Codes. Das komplette Release enthaelt ueber
+# hundert Varianten -- gebraucht werden vier Schnitte in der
+# Standardbreite.
+#
+# Die Schriftart des Terminals muss anschliessend von Hand umgestellt
+# werden; welches Terminal im Einsatz ist, weiss dieses Skript nicht.
+# ---------------------------------------------------------------
+install_nerd_font() {
+  local dir="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
+
+  if [ -f "$dir/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+    info "JetBrainsMono Nerd Font ist bereits installiert"
+    return 0
+  fi
+
+  if ! command -v unzip >/dev/null; then
+    warn "unzip fehlt -- Schriftart wird uebersprungen"
+    return 0
+  fi
+
+  local tag
+  tag="$(latest_tag ryanoasis/nerd-fonts)"
+  info "Installiere JetBrainsMono Nerd Font $tag"
+  curl -fsSL --max-time 600 -o "$TMP/JetBrainsMono.zip" \
+    "https://github.com/ryanoasis/nerd-fonts/releases/download/$tag/JetBrainsMono.zip"
+
+  mkdir -p "$dir" "$TMP/jbm"
+  unzip -qo "$TMP/JetBrainsMono.zip" -d "$TMP/jbm"
+
+  local schnitt src
+  for schnitt in Regular Bold Italic BoldItalic; do
+    src="$(find "$TMP/jbm" -name "JetBrainsMonoNerdFont-$schnitt.ttf" | head -1)"
+    [ -n "$src" ] && cp "$src" "$dir/"
+  done
+
+  command -v fc-cache >/dev/null && fc-cache -f "$HOME/.local/share/fonts" >/dev/null 2>&1
+  warn "Terminal-Schriftart noch auf 'JetBrainsMono Nerd Font' umstellen."
+}
+
 install_neovim
+install_nerd_font
 install_from_tarball BurntSushi/ripgrep "ripgrep-@TAG@-${RUST_ARCH}-unknown-linux-musl.tar.gz" rg
 install_from_tarball sharkdp/fd         "fd-@TAG@-${RUST_ARCH}-unknown-linux-musl.tar.gz"      fd
 install_tree_sitter
@@ -119,6 +163,12 @@ for tool in nvim rg fd tree-sitter; do
     printf '  %-14s FEHLT\n' "$tool"
   fi
 done
+
+if [ -f "$HOME/.local/share/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+  printf '  %-14s installiert (Terminal-Schriftart ggf. noch umstellen)\n' "Nerd Font"
+else
+  printf '  %-14s FEHLT\n' "Nerd Font"
+fi
 
 case ":$PATH:" in
   *":$BIN:"*) ;;
