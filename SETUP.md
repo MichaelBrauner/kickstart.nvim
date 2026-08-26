@@ -19,6 +19,22 @@ Voraussetzung: `~/.local/bin` steht in `PATH` **vor** `/usr/bin`.
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+**In `~/.bashrc`, nicht in `~/.profile`.** Ubuntu setzt `~/.local/bin` in `~/.profile`,
+das aber nur bei der Anmeldung gelesen wird. Ein neuer Terminal-Tab ist keine
+Login-Shell und findet das aktuelle Neovim dann nicht — stattdessen startet die
+ältere Version aus `/usr/bin`, und die Konfiguration bricht ab.
+
+### Icons
+
+Ohne Nerd Font zeigt neo-tree Ersatzkästchen mit Hex-Codes. Diese Konfiguration
+benutzt deshalb schlichte Textzeichen (`lua/custom/plugins/icons.lua`).
+
+Mit Nerd Font: Datei löschen, `have_nerd_font` in `init.lua` auf `true` setzen und
+die Terminal-Schrift auf eine **Mono**-Variante stellen (z. B. „JetBrainsMono Nerd
+Font Mono"). Die Variante ohne „Mono" hat zwei Zellen breite Symbole — GNOME
+Terminal leitet daraus die Zellenbreite für allen Text ab und zieht ihn
+auseinander.
+
 ## Voraussetzungen
 
 | Werkzeug | Wofür | Pflicht |
