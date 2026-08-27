@@ -10,6 +10,24 @@ vim.pack.add {
 vim.keymap.set('n', '\\', '<Cmd>Neotree reveal<CR>', { desc = 'NeoTree reveal', silent = true })
 
 require('neo-tree').setup {
+  -- The defaults are Nerd Font glyphs from the private use area. Without a
+  -- Nerd Font they only render because some fallback font happens to cover
+  -- those codepoints -- see `vim.g.have_nerd_font`.
+  default_component_configs = {
+    git_status = {
+      symbols = {
+        added = '+',
+        deleted = '-',
+        modified = '~',
+        renamed = '>',
+        untracked = '?',
+        ignored = 'i',
+        unstaged = '*',
+        staged = '=',
+        conflict = '!',
+      },
+    },
+  },
   filesystem = {
     window = {
       mappings = {
