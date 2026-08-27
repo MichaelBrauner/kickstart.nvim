@@ -423,10 +423,39 @@ do
     },
   }
 
+  -- Nord -- die Lua-Portierung. Der offizielle Port von nordtheme.com ist
+  -- reines Vimscript und kennt die Treesitter-Gruppen nicht, faerbt also nur
+  -- nach Dateityp statt nach Syntaxbaum.
+  vim.pack.add { gh 'shaunsingh/nord.nvim' }
+  vim.g.nord_italic = false -- wie oben bei tokyonight: keine Kursiven
+  vim.g.nord_borders = true -- sichtbare Trennlinie zwischen Splits
+  -- Ohne das faerbt Nord geaenderte Zeilen im Diff invertiert -- ganze Bloecke
+  -- in Volltonfarbe. So bleibt der Hintergrund ruhig und nur die Schrift traegt
+  -- die Farbe.
+  vim.g.nord_uniform_diff_background = true
+
+  -- Nord gibt den Diff-Gruppen eine Vordergrundfarbe. Vims Diff-Highlight
+  -- liegt aber ueber Treesitter, also verliert jede hinzugefuegte Zeile ihre
+  -- Syntaxfarben -- eine untracked Datei erscheint komplett einfarbig gruen.
+  -- Nur Hintergruende setzen; die Schriftfarbe bleibt damit bei Treesitter.
+  vim.api.nvim_create_autocmd('ColorScheme', {
+    desc = 'Diff-Highlight ohne Vordergrundfarbe',
+    group = vim.api.nvim_create_augroup('custom-diff-hl', { clear = true }),
+    callback = function()
+      if vim.g.colors_name ~= 'nord' then
+        return
+      end
+
+      vim.api.nvim_set_hl(0, 'DiffAdd', { bg = '#4f6355' })
+      vim.api.nvim_set_hl(0, 'DiffDelete', { bg = '#5a4a4d' })
+      vim.api.nvim_set_hl(0, 'DiffChange', { bg = '#3b4252' })
+      vim.api.nvim_set_hl(0, 'DiffText', { bg = '#3f5766' })
+    end,
+  })
+
   -- Load the colorscheme here.
-  -- Like many other themes, this one has different styles, and you could load
-  -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  vim.cmd.colorscheme 'tokyonight-night'
+  -- Zum Wechseln: 'tokyonight-night', 'tokyonight-storm', 'tokyonight-day'.
+  vim.cmd.colorscheme 'nord'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
